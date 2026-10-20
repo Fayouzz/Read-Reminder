@@ -20,6 +20,7 @@ data class HomeUiState(
     val currentStreak: Int = 0,
     val longestStreak: Int = 0,
     val sessions: List<ReadingSessionEntity> = emptyList(),
+    val books: List<BookEntity> = emptyList(),
 ) {
     val progress: Float get() = if (goal <= 0) 0f else (pagesToday.toFloat() / goal).coerceIn(0f, 1f)
     val percent: Int get() = (progress * 100).toInt()
@@ -44,18 +45,16 @@ class HomeViewModel(private val repo: ReadingRepository, settings: SettingsRepos
 
     val state: StateFlow<HomeUiState> = today.flatMapLatest { d ->
         val from = d.minusDays(400)
-        combine(settings.settings, repo.observeSessions(d), repo.observeTotals(from, d), repo.observeGoals(from, d)) { s, sessions, totals, goals ->
+        combine(settings.settings, repo.observeSessions(d), repo.observeTotals(from, d), repo.observeGoals(from, d), repo.observeBooks()) { s, sessions, totals, goals, books ->
             val pagesByDay = totals.associate { LocalDate.ofEpochDay(it.day) to it.pages }
             val snap = goals.associate { LocalDate.ofEpochDay(it.date) to it.targetPages }
             val goalFor = { day: LocalDate -> snap[day] ?: s.dailyGoal }   // fall back to current goal if no snapshot
             val streaks = StreakCalculator.compute(d, pagesByDay, goalFor)
-            HomeUiState(d, pagesByDay[d] ?: 0, goalFor(d), streaks.current, streaks.longest, sessions)
+            HomeUiState(d, pagesByDay[d] ?: 0, goalFor(d), streaks.current, streaks.longest, sessions, books)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
-    fun log(pages: Int) = viewModelScope.launch {
-        repo.logPages(pages, state.value.today, Instant.now())
-    }
-
+    fun log(input: SessionInput) = viewModelScope.launch { repo.logNow(input) }
+    fun edit(old: ReadingSessionEntity, input: SessionInput) = viewModelScope.launch { repo.updateSession(old, input) }
     fun delete(s: ReadingSessionEntity) = viewModelScope.launch { repo.delete(s) }
 }

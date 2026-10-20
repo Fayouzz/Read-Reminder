@@ -9,7 +9,7 @@ import com.personal.readreminder.data.SettingsRepository
 class AppContainer(app: Application) {
     val db = AppDatabase.build(app)
     val settings = SettingsRepository(app)
-    val repository = ReadingRepository(db.sessionDao(), db.goalDao(), settings)
+    val repository = ReadingRepository(db.sessionDao(), db.goalDao(), db.bookDao(), settings)
 }
 
 class ReadReminderApp : Application() {

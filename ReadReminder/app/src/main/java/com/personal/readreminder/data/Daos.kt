@@ -4,10 +4,12 @@ import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
 data class DayTotal(val day: Long, val pages: Int)
+data class BookPages(val bookId: Long, val pages: Int)
 
 @Dao
 interface BookDao {
     @Query("SELECT * FROM books ORDER BY dateAdded DESC") fun observeAll(): Flow<List<BookEntity>>
+    @Query("SELECT * FROM books WHERE id = :id") suspend fun get(id: Long): BookEntity?
     @Insert suspend fun insert(book: BookEntity): Long
     @Update suspend fun update(book: BookEntity)
     @Delete suspend fun delete(book: BookEntity)
@@ -20,6 +22,9 @@ interface SessionDao {
 
     @Query("SELECT sessionDate AS day, SUM(pagesRead) AS pages FROM reading_sessions WHERE sessionDate BETWEEN :from AND :to GROUP BY sessionDate")
     fun observeTotals(from: Long, to: Long): Flow<List<DayTotal>>
+
+    @Query("SELECT bookId AS bookId, SUM(pagesRead) AS pages FROM reading_sessions WHERE bookId IS NOT NULL GROUP BY bookId")
+    fun observeBookPages(): Flow<List<BookPages>>
 
     @Insert suspend fun insert(s: ReadingSessionEntity): Long
     @Update suspend fun update(s: ReadingSessionEntity)

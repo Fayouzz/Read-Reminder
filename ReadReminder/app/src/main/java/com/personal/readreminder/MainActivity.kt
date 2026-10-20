@@ -22,6 +22,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import com.personal.readreminder.ui.books.BooksScreen
+import com.personal.readreminder.ui.books.BooksViewModel
 import com.personal.readreminder.ui.home.HomeScreen
 import com.personal.readreminder.ui.home.HomeViewModel
 import com.personal.readreminder.ui.settings.SettingsScreen
@@ -51,7 +53,7 @@ private fun Root(c: AppContainer) {
         bottomBar = {
             NavigationBar {
                 Tab.entries.forEach { t ->
-                    NavigationBarItem(selected = route == t.route, label = { Text(t.label) },
+                    NavigationBarItem(selected = route == t.route || (t == Tab.Home && route == "books"), label = { Text(t.label) },
                         icon = { Icon(t.icon, contentDescription = t.label) },
                         onClick = {
                             nav.navigate(t.route) {
@@ -66,7 +68,11 @@ private fun Root(c: AppContainer) {
         NavHost(nav, startDestination = Tab.Home.route, modifier = Modifier.padding(pad)) {
             composable(Tab.Home.route) {
                 val vm: HomeViewModel = viewModel(factory = viewModelFactory { initializer { HomeViewModel(c.repository, c.settings) } })
-                HomeScreen(vm)
+                HomeScreen(vm, onOpenBooks = { nav.navigate("books") { launchSingleTop = true } })
+            }
+            composable("books") {
+                val vm: BooksViewModel = viewModel(factory = viewModelFactory { initializer { BooksViewModel(c.repository) } })
+                BooksScreen(vm, onBack = { nav.popBackStack() })
             }
             composable(Tab.History.route) {
                 Box(Modifier.fillMaxSize(), Alignment.Center) { Text("History, charts and statistics arrive in Stage 4.", Modifier.padding(24.dp)) }
