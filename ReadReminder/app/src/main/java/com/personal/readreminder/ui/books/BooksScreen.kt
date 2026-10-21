@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.readreminder.data.BookEntity
+import com.personal.readreminder.data.BookProgress
 import com.personal.readreminder.data.BookStatus
 import com.personal.readreminder.ui.common.LogDialog
 import com.personal.readreminder.ui.theme.*
@@ -32,6 +33,7 @@ private val Swatches = listOf(0xFF55AEF5, 0xFF35B86B, 0xFFFFB547, 0xFFE57373, 0x
 @Composable
 fun BooksScreen(vm: BooksViewModel, onBack: () -> Unit) {
     val list by vm.books.collectAsStateWithLifecycle()
+    val cfg by vm.cfg.collectAsStateWithLifecycle()
     var editing by remember { mutableStateOf<BookEntity?>(null) }
     var adding by remember { mutableStateOf(false) }
     var logFor by remember { mutableStateOf<Long?>(null) }
@@ -69,7 +71,7 @@ fun BooksScreen(vm: BooksViewModel, onBack: () -> Unit) {
 
     if (adding) BookDialog(null, { adding = false }) { vm.save(it); adding = false }
     editing?.let { b -> BookDialog(b, { editing = null }) { vm.save(it); editing = null } }
-    logFor?.let { id -> LogDialog(books = list.map { it.book }, presetBookId = id, onDismiss = { logFor = null }, onSave = { vm.log(it); logFor = null }) }
+    logFor?.let { id -> LogDialog(books = list, presetBookId = id, is24h = cfg.time24h, typicalMinutes = cfg.defaultSessionMinutes, onDismiss = { logFor = null }, onSave = { vm.log(it); logFor = null }) }
     deleting?.let { b ->
         AlertDialog(onDismissRequest = { deleting = null },
             title = { Text("Delete \u201C${b.title}\u201D?") },
@@ -80,10 +82,10 @@ fun BooksScreen(vm: BooksViewModel, onBack: () -> Unit) {
 }
 
 @Composable
-private fun BookCard(ui: BookUi, onLog: () -> Unit, onEdit: () -> Unit, onStatus: (BookStatus) -> Unit, onDelete: () -> Unit) {
+private fun BookCard(ui: BookProgress, onLog: () -> Unit, onEdit: () -> Unit, onStatus: (BookStatus) -> Unit, onDelete: () -> Unit) {
     val b = ui.book
     var menu by remember { mutableStateOf(false) }
-    Card(colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(3.dp), modifier = Modifier.fillMaxWidth()) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(3.dp), modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.height(IntrinsicSize.Min)) {
             Box(Modifier.width(10.dp).fillMaxHeight().background(Color(b.coverColor ?: Swatches[0])))
             Column(Modifier.weight(1f).padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -150,7 +152,7 @@ private fun BookDialog(initial: BookEntity?, onDismiss: () -> Unit, onSave: (Boo
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Swatches.forEach { c ->
                         Box(Modifier.size(36.dp).clip(CircleShape).background(Color(c))
-                            .border(if (c == color) 3.dp else 0.dp, TextMain, CircleShape)
+                            .border(if (c == color) 3.dp else 0.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
                             .clickable(onClickLabel = "Choose cover color") { color = c })
                     }
                 }

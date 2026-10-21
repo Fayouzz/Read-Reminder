@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.ReadReminder" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#2B6FA8</item>
+        <item name="android:windowBackground">#11161B</item>
+    </style>
+</resources>

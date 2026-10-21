@@ -5,21 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.personal.readreminder.data.*
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/** currentPage is derived: starting page + pages from logged sessions, so it always matches history. */
-data class BookUi(val book: BookEntity, val currentPage: Int) {
-    val fraction: Float? = book.totalPages?.takeIf { it > 0 }?.let { (currentPage.toFloat() / it).coerceIn(0f, 1f) }
-    val reachedEnd: Boolean = book.totalPages?.let { it > 0 && currentPage >= it } ?: false
-}
-
-class BooksViewModel(private val repo: ReadingRepository) : ViewModel() {
-    val books: StateFlow<List<BookUi>> = combine(repo.observeBooks(), repo.observeBookPages()) { books, pages ->
-        val m = pages.associate { it.bookId to it.pages }
-        books.map { BookUi(it, it.initialPage + (m[it.id] ?: 0)) }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+class BooksViewModel(private val repo: ReadingRepository, settings: SettingsRepository) : ViewModel() {
+    val books: StateFlow<List<BookProgress>> = repo.observeBookProgress()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val cfg: StateFlow<AppSettings> = settings.settings.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings())
 
     fun save(b: BookEntity) = viewModelScope.launch { if (b.id == 0L) repo.addBook(b) else repo.updateBook(b) }
     fun delete(b: BookEntity) = viewModelScope.launch { repo.deleteBook(b) }
@@ -33,5 +25,5 @@ class BooksViewModel(private val repo: ReadingRepository) : ViewModel() {
         })
     }
 
-    fun log(i: SessionInput) = viewModelScope.launch { repo.logNow(i) }
+    fun log(i: SessionInput) = viewModelScope.launch { repo.addSession(i) }
 }

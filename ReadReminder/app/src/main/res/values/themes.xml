@@ -1,4 +1,5 @@
 <resources>
+    <color name="ic_launcher_background">#55AEF5</color>
     <style name="Theme.ReadReminder" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">#55AEF5</item>
         <item name="android:windowBackground">#FFFFFF</item>

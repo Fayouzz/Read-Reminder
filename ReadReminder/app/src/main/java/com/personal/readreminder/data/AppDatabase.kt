@@ -14,6 +14,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun bookDao(): BookDao
     abstract fun sessionDao(): SessionDao
     abstract fun goalDao(): GoalDao
+    abstract fun reminderDao(): ReminderDao
+    abstract fun achievementDao(): AchievementDao
 
     companion object {
         // Future schema changes must add a Migration here; no destructive fallback on purpose.

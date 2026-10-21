@@ -12,6 +12,11 @@ coroutines = "1.8.1"
 junit = "4.13.2"
 
 [libraries]
+core-ktx = { module = "androidx.core:core-ktx", version = "1.13.1" }
+json = { module = "org.json:json", version = "20240303" }
+androidx-test-ext-junit = { module = "androidx.test.ext:junit", version = "1.2.1" }
+androidx-test-runner = { module = "androidx.test:runner", version = "1.6.2" }
+compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 compose-ui = { module = "androidx.compose.ui:ui" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
